@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Role {
+  PARTICIPANT
+  ADMIN
+}
+
+enum AiUsageFrequency {
+  JAMAIS
+  RAREMENT
+  PARFOIS
+  SOUVENT
+  TOUS_LES_JOURS
+}
+
+model User {
+  id               Int              @id @default(autoincrement())
+  pseudo           String
+  username         String           @unique
+  passwordHash     String
+  age              Int
+  educationLevel   String
+  aiUsageFrequency AiUsageFrequency
+  role             Role             @default(PARTICIPANT)
+  createdAt        DateTime         @default(now())
+  sessions TestSession[]
+}
+
+enum TestType {
+  TEST_1
+  TEST_2
+}
+
+model TestSession {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  testType     TestType
+  score        Int       @default(0)
+  total        Int       @default(0)
+  aiUsageCount Int       @default(0)
+  startedAt    DateTime  @default(now())
+  completedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers      Answer[]
+}
+
+model Answer {
+  id          Int      @id @default(autoincrement())
+  sessionId   Int
+  question    String
+  userAnswer  String
+  correctAnswer String
+  isCorrect   Boolean
+  timeSpent   Int?
+  createdAt   DateTime @default(now())
+
+  session TestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
