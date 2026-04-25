@@ -2,6 +2,17 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+type TestSessionLike = {
+  id: number;
+  userId: number;
+  testType: "TEST_1" | "TEST_2";
+  score: number;
+  total: number;
+  aiUsageCount: number | null;
+  startedAt: Date;
+  completedAt: Date | null;
+};
+
 export default async function TestsPage() {
   const cookieStore = await cookies();
   const userId = cookieStore.get("userId")?.value;
@@ -10,12 +21,17 @@ export default async function TestsPage() {
   if (!userId) redirect("/");
   if (role === "ADMIN") redirect("/admin/dashboard");
 
-  const sessions = await prisma.testSession.findMany({
+  const sessions = (await prisma.testSession.findMany({
     where: { userId: Number(userId) },
-  });
+  })) as TestSessionLike[];
 
-  const test1Done = sessions.some((s) => s.testType === "TEST_1");
-  const test2Done = sessions.some((s) => s.testType === "TEST_2");
+  const test1Done = sessions.some(
+    (session: TestSessionLike) => session.testType === "TEST_1"
+  );
+
+  const test2Done = sessions.some(
+    (session: TestSessionLike) => session.testType === "TEST_2"
+  );
 
   return (
     <main className="min-h-screen flex items-center justify-center px-6 py-10">
