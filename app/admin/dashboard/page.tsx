@@ -16,29 +16,30 @@ export default async function AdminDashboardPage() {
     redirect("/");
   }
 
-  const users: UserWithSessions[] = await prisma.user.findMany({
+  const users = (await prisma.user.findMany({
     where: { role: "PARTICIPANT" },
     include: { sessions: true },
     orderBy: { createdAt: "desc" },
-  });
+  })) as UserWithSessions[];
 
   const allSessions: TestSession[] = users.flatMap(
-  (user: UserWithSessions) => user.sessions
-);
-  const test1Sessions = allSessions.filter(
-    (s: TestSession) => s.testType === "TEST_1"
+    (user: UserWithSessions) => user.sessions
   );
 
-  const test2Sessions = allSessions.filter(
-    (s: TestSession) => s.testType === "TEST_2"
+  const test1Sessions: TestSession[] = allSessions.filter(
+    (session: TestSession) => session.testType === "TEST_1"
   );
 
-  const average = (sessions: typeof allSessions) => {
+  const test2Sessions: TestSession[] = allSessions.filter(
+    (session: TestSession) => session.testType === "TEST_2"
+  );
+
+  const average = (sessions: TestSession[]) => {
     if (sessions.length === 0) return 0;
 
-    const total = sessions.reduce((sum, s) => {
-      if (!s.total || s.total === 0) return sum;
-      return sum + (s.score / s.total) * 100;
+    const total = sessions.reduce((sum: number, session: TestSession) => {
+      if (!session.total || session.total === 0) return sum;
+      return sum + (session.score / session.total) * 100;
     }, 0);
 
     return Math.round(total / sessions.length);
@@ -51,8 +52,11 @@ export default async function AdminDashboardPage() {
     test2Sessions.length === 0
       ? 0
       : Math.round(
-          test2Sessions.reduce((sum, s) => sum + (s.aiUsageCount ?? 0), 0) /
-            test2Sessions.length
+          test2Sessions.reduce(
+            (sum: number, session: TestSession) =>
+              sum + (session.aiUsageCount ?? 0),
+            0
+          ) / test2Sessions.length
         );
 
   const comparisonData = [
@@ -60,9 +64,13 @@ export default async function AdminDashboardPage() {
     { name: "Test 2", moyenne: avgTest2 },
   ];
 
-  const userProgressData = users.map((user) => {
-    const test1 = user.sessions.find((s) => s.testType === "TEST_1");
-    const test2 = user.sessions.find((s) => s.testType === "TEST_2");
+  const userProgressData = users.map((user: UserWithSessions) => {
+    const test1 = user.sessions.find(
+      (session: TestSession) => session.testType === "TEST_1"
+    );
+    const test2 = user.sessions.find(
+      (session: TestSession) => session.testType === "TEST_2"
+    );
 
     return {
       participant: user.pseudo,
@@ -78,8 +86,11 @@ export default async function AdminDashboardPage() {
   });
 
   const correlationData = users
-    .map((user) => {
-      const test2 = user.sessions.find((s) => s.testType === "TEST_2");
+    .map((user: UserWithSessions) => {
+      const test2 = user.sessions.find(
+        (session: TestSession) => session.testType === "TEST_2"
+      );
+
       if (!test2 || !test2.total) return null;
 
       return {
@@ -201,9 +212,13 @@ export default async function AdminDashboardPage() {
               </thead>
 
               <tbody className="divide-y divide-slate-200">
-                {users.map((user) => {
-                  const test1 = user.sessions.find((s) => s.testType === "TEST_1");
-                  const test2 = user.sessions.find((s) => s.testType === "TEST_2");
+                {users.map((user: UserWithSessions) => {
+                  const test1 = user.sessions.find(
+                    (session: TestSession) => session.testType === "TEST_1"
+                  );
+                  const test2 = user.sessions.find(
+                    (session: TestSession) => session.testType === "TEST_2"
+                  );
 
                   const test1Percent =
                     test1 && test1.total
@@ -234,10 +249,16 @@ export default async function AdminDashboardPage() {
                       <td className="p-4">
                         {test2Percent !== null ? `${test2Percent} %` : "-"}
                       </td>
-                      <td className="p-4">{test2 ? test2.aiUsageCount ?? 0 : "-"}</td>
+                      <td className="p-4">
+                        {test2 ? test2.aiUsageCount ?? 0 : "-"}
+                      </td>
                       <td className="p-4 font-semibold">
                         {gap !== null ? (
-                          <span className={gap > 0 ? "text-green-600" : "text-red-600"}>
+                          <span
+                            className={
+                              gap > 0 ? "text-green-600" : "text-red-600"
+                            }
+                          >
                             {gap > 0 ? "+" : ""}
                             {gap} %
                           </span>
