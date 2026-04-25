@@ -2,6 +2,11 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import AdminCharts from "@/components/AdminCharts";
+import type { TestSession, User } from "@prisma/client";
+
+type UserWithSessions = User & {
+  sessions: TestSession[];
+};
 
 export default async function AdminDashboardPage() {
   const cookieStore = await cookies();
@@ -11,15 +16,22 @@ export default async function AdminDashboardPage() {
     redirect("/");
   }
 
-  const users = await prisma.user.findMany({
+  const users: UserWithSessions[] = await prisma.user.findMany({
     where: { role: "PARTICIPANT" },
     include: { sessions: true },
     orderBy: { createdAt: "desc" },
   });
 
-  const allSessions = users.flatMap((user) => user.sessions);
-  const test1Sessions = allSessions.filter((s) => s.testType === "TEST_1");
-  const test2Sessions = allSessions.filter((s) => s.testType === "TEST_2");
+  const allSessions: TestSession[] = users.flatMap(
+  (user: UserWithSessions) => user.sessions
+);
+  const test1Sessions = allSessions.filter(
+    (s: TestSession) => s.testType === "TEST_1"
+  );
+
+  const test2Sessions = allSessions.filter(
+    (s: TestSession) => s.testType === "TEST_2"
+  );
 
   const average = (sessions: typeof allSessions) => {
     if (sessions.length === 0) return 0;
