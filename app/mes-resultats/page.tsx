@@ -2,22 +2,51 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+type AnswerLike = {
+  id: number;
+  sessionId: number;
+  question: string;
+  userAnswer: string;
+  correctAnswer: string;
+  isCorrect: boolean;
+  timeSpent: number;
+};
+
+type TestSessionWithAnswers = {
+  id: number;
+  userId: number;
+  testType: "TEST_1" | "TEST_2";
+  score: number;
+  total: number;
+  aiUsageCount: number | null;
+  startedAt: Date;
+  completedAt: Date | null;
+  answers: AnswerLike[];
+};
+
 export default async function MesResultatsPage() {
   const cookieStore = await cookies();
   const userId = cookieStore.get("userId")?.value;
 
   if (!userId) redirect("/");
 
-  const sessions = await prisma.testSession.findMany({
+  const sessions = (await prisma.testSession.findMany({
     where: { userId: Number(userId) },
     include: { answers: true },
     orderBy: { completedAt: "desc" },
-  });
+  })) as TestSessionWithAnswers[];
 
-  const test1 = sessions.find((s) => s.testType === "TEST_1");
-  const test2 = sessions.find((s) => s.testType === "TEST_2");
+  const test1 = sessions.find(
+    (session: TestSessionWithAnswers) => session.testType === "TEST_1"
+  );
 
-  const displayedSessions = [test1, test2].filter(Boolean);
+  const test2 = sessions.find(
+    (session: TestSessionWithAnswers) => session.testType === "TEST_2"
+  );
+
+  const displayedSessions = [test1, test2].filter(
+    (session): session is TestSessionWithAnswers => session !== undefined
+  );
 
   return (
     <main className="min-h-screen px-6 py-10">
@@ -45,7 +74,7 @@ export default async function MesResultatsPage() {
           </div>
         ) : (
           <div className="space-y-8">
-            {displayedSessions.map((session: any) => {
+            {displayedSessions.map((session: TestSessionWithAnswers) => {
               const percent = session.total
                 ? Math.round((session.score / session.total) * 100)
                 : 0;
@@ -73,7 +102,7 @@ export default async function MesResultatsPage() {
                       <p className="text-slate-600">
                         Aides IA utilisées :{" "}
                         <span className="font-bold text-black">
-                          {session.aiUsageCount}
+                          {session.aiUsageCount ?? 0}
                         </span>
                       </p>
                     )}
@@ -91,7 +120,7 @@ export default async function MesResultatsPage() {
                       </thead>
 
                       <tbody className="divide-y divide-slate-200">
-                        {session.answers.map((answer: any) => (
+                        {session.answers.map((answer: AnswerLike) => (
                           <tr key={answer.id} className="text-slate-800">
                             <td className="p-4">{answer.question}</td>
                             <td className="p-4">{answer.userAnswer}</td>
