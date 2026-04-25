@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -10,11 +11,13 @@ export async function GET() {
     return NextResponse.json({ message: "Admin déjà existant" });
   }
 
+  const passwordHash = await bcrypt.hash("admin123", 10);
+
   await prisma.user.create({
     data: {
       pseudo: "Admin",
       username: "admin",
-      passwordHash: "admin123", // comme en local
+      passwordHash,
       age: 25,
       educationLevel: "BAC_5",
       aiUsageFrequency: "SOUVENT",
