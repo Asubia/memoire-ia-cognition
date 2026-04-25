@@ -2,10 +2,29 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import AdminCharts from "@/components/AdminCharts";
-import type { TestSession, User } from "@prisma/client";
 
-type UserWithSessions = User & {
-  sessions: TestSession[];
+type TestSessionLike = {
+  id: number;
+  userId: number;
+  testType: "TEST_1" | "TEST_2";
+  score: number;
+  total: number;
+  aiUsageCount: number | null;
+  startedAt: Date;
+  completedAt: Date | null;
+};
+
+type UserWithSessions = {
+  id: number;
+  pseudo: string;
+  username: string;
+  passwordHash: string;
+  age: number;
+  educationLevel: string;
+  aiUsageFrequency: string;
+  role: string;
+  createdAt: Date;
+  sessions: TestSessionLike[];
 };
 
 export default async function AdminDashboardPage() {
@@ -22,22 +41,22 @@ export default async function AdminDashboardPage() {
     orderBy: { createdAt: "desc" },
   })) as UserWithSessions[];
 
-  const allSessions: TestSession[] = users.flatMap(
+  const allSessions: TestSessionLike[] = users.flatMap(
     (user: UserWithSessions) => user.sessions
   );
 
-  const test1Sessions: TestSession[] = allSessions.filter(
-    (session: TestSession) => session.testType === "TEST_1"
+  const test1Sessions: TestSessionLike[] = allSessions.filter(
+    (session: TestSessionLike) => session.testType === "TEST_1"
   );
 
-  const test2Sessions: TestSession[] = allSessions.filter(
-    (session: TestSession) => session.testType === "TEST_2"
+  const test2Sessions: TestSessionLike[] = allSessions.filter(
+    (session: TestSessionLike) => session.testType === "TEST_2"
   );
 
-  const average = (sessions: TestSession[]) => {
+  const average = (sessions: TestSessionLike[]) => {
     if (sessions.length === 0) return 0;
 
-    const total = sessions.reduce((sum: number, session: TestSession) => {
+    const total = sessions.reduce((sum: number, session: TestSessionLike) => {
       if (!session.total || session.total === 0) return sum;
       return sum + (session.score / session.total) * 100;
     }, 0);
@@ -53,7 +72,7 @@ export default async function AdminDashboardPage() {
       ? 0
       : Math.round(
           test2Sessions.reduce(
-            (sum: number, session: TestSession) =>
+            (sum: number, session: TestSessionLike) =>
               sum + (session.aiUsageCount ?? 0),
             0
           ) / test2Sessions.length
@@ -66,10 +85,11 @@ export default async function AdminDashboardPage() {
 
   const userProgressData = users.map((user: UserWithSessions) => {
     const test1 = user.sessions.find(
-      (session: TestSession) => session.testType === "TEST_1"
+      (session: TestSessionLike) => session.testType === "TEST_1"
     );
+
     const test2 = user.sessions.find(
-      (session: TestSession) => session.testType === "TEST_2"
+      (session: TestSessionLike) => session.testType === "TEST_2"
     );
 
     return {
@@ -88,7 +108,7 @@ export default async function AdminDashboardPage() {
   const correlationData = users
     .map((user: UserWithSessions) => {
       const test2 = user.sessions.find(
-        (session: TestSession) => session.testType === "TEST_2"
+        (session: TestSessionLike) => session.testType === "TEST_2"
       );
 
       if (!test2 || !test2.total) return null;
@@ -214,10 +234,11 @@ export default async function AdminDashboardPage() {
               <tbody className="divide-y divide-slate-200">
                 {users.map((user: UserWithSessions) => {
                   const test1 = user.sessions.find(
-                    (session: TestSession) => session.testType === "TEST_1"
+                    (session: TestSessionLike) => session.testType === "TEST_1"
                   );
+
                   const test2 = user.sessions.find(
-                    (session: TestSession) => session.testType === "TEST_2"
+                    (session: TestSessionLike) => session.testType === "TEST_2"
                   );
 
                   const test1Percent =
