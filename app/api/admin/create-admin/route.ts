@@ -3,18 +3,17 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const existing = await prisma.user.findFirst({
-    where: { role: "ADMIN" },
-  });
-
-  if (existing) {
-    return NextResponse.json({ message: "Admin déjà existant" });
-  }
-
   const passwordHash = await bcrypt.hash("admin123", 10);
 
-  await prisma.user.create({
-    data: {
+  const admin = await prisma.user.upsert({
+    where: {
+      username: "admin",
+    },
+    update: {
+      passwordHash,
+      role: "ADMIN",
+    },
+    create: {
       pseudo: "Admin",
       username: "admin",
       passwordHash,
@@ -25,5 +24,8 @@ export async function GET() {
     },
   });
 
-  return NextResponse.json({ message: "Admin créé" });
+  return NextResponse.json({
+    message: "Admin créé ou mot de passe réinitialisé",
+    username: admin.username,
+  });
 }
