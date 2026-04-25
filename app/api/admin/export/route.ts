@@ -2,6 +2,30 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+type TestSessionLike = {
+  id: number;
+  userId: number;
+  testType: "TEST_1" | "TEST_2";
+  score: number;
+  total: number;
+  aiUsageCount: number | null;
+  startedAt: Date;
+  completedAt: Date | null;
+};
+
+type UserWithSessions = {
+  id: number;
+  pseudo: string;
+  username: string;
+  passwordHash: string;
+  age: number;
+  educationLevel: string;
+  aiUsageFrequency: string;
+  role: string;
+  createdAt: Date;
+  sessions: TestSessionLike[];
+};
+
 function escapeCsv(value: unknown) {
   const text = String(value ?? "");
   return `"${text.replace(/"/g, '""')}"`;
@@ -15,15 +39,20 @@ export async function GET() {
     return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
   }
 
-  const users = await prisma.user.findMany({
+  const users = (await prisma.user.findMany({
     where: { role: "PARTICIPANT" },
     include: { sessions: true },
     orderBy: { createdAt: "desc" },
-  });
+  })) as UserWithSessions[];
 
-  const rows = users.map((user) => {
-    const test1 = user.sessions.find((s) => s.testType === "TEST_1");
-    const test2 = user.sessions.find((s) => s.testType === "TEST_2");
+  const rows = users.map((user: UserWithSessions) => {
+    const test1 = user.sessions.find(
+      (session: TestSessionLike) => session.testType === "TEST_1"
+    );
+
+    const test2 = user.sessions.find(
+      (session: TestSessionLike) => session.testType === "TEST_2"
+    );
 
     const test1Percent =
       test1 && test1.total ? Math.round((test1.score / test1.total) * 100) : "";
