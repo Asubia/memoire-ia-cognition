@@ -226,9 +226,11 @@ export default function Test2Page() {
       setAiInteractions((prev) => [
         ...prev,
         {
+          questionIndex: current + 1,
           question: question.question,
           prompt: "Demande d’aide IA",
-          aiResponse,
+          aiResponse: aiResponse,
+          usedAt: new Date().toISOString(),
         },
       ]);
     } catch {
@@ -240,9 +242,11 @@ export default function Test2Page() {
       setAiInteractions((prev) => [
         ...prev,
         {
+          questionIndex: current + 1,
           question: question.question,
           prompt: "Demande d’aide IA",
           aiResponse: fallback,
+          usedAt: new Date().toISOString(),
         },
       ]);
     } finally {
