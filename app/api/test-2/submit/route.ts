@@ -14,6 +14,20 @@ export async function POST(req: Request) {
       );
     }
 
+    const existingSession = await prisma.testSession.findFirst({
+      where: {
+        userId: Number(userId),
+        testType: "TEST_2",
+      },
+    });
+
+    if (existingSession) {
+      return NextResponse.json(
+        { error: "Vous avez déjà effectué le test 2." },
+        { status: 409 }
+      );
+    }
+
     const { answers, score, total, aiUsageCount } = await req.json();
 
     const session = await prisma.testSession.create({
@@ -25,27 +39,20 @@ export async function POST(req: Request) {
         aiUsageCount,
         completedAt: new Date(),
         answers: {
-          create: answers.map((a: any) => ({
-            question: a.question,
-            userAnswer: a.userAnswer,
-            correctAnswer: a.correctAnswer,
-            isCorrect: a.isCorrect,
-            timeSpent: a.timeSpent,
-          })),
+          create: answers,
         },
       },
     });
 
     return NextResponse.json({
-      message: "Test 2 enregistré",
+      message: "Test 2 enregistré avec succès.",
       sessionId: session.id,
-      aiUsageCount,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Erreur submit test 2 :", error);
 
     return NextResponse.json(
-      { error: "Erreur serveur" },
+      { error: "Erreur lors de l’enregistrement du test 2." },
       { status: 500 }
     );
   }
