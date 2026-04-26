@@ -3,268 +3,174 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-const MAX_AI_USAGE = 6;
+const MAX_AI_USAGE = 10;
 
 const questions = [
   {
-    question:
-      "Une personne lit une information sur Internet sans vérifier la source. Quel est le comportement le plus prudent ?",
-    aiHelp:
-      "Il faut distinguer une affirmation d’une preuve. Une information fiable doit pouvoir être vérifiée.",
+    question: "Une suite suit le modèle : 3, 6, 12, 24, ?",
+    aiHelp: "Observe comment chaque terme évolue par rapport au précédent.",
+    options: ["36", "48", "30", "60"],
+    answer: "48",
+  },
+  {
+    question: "Si tous les carrés sont des rectangles, alors :",
+    aiHelp: "Réfléchis à la relation d’inclusion entre les ensembles.",
     options: [
-      "La partager directement",
-      "La vérifier avec une source fiable",
-      "La croire si elle est bien écrite",
-      "L’ignorer sans réfléchir",
+      "Tous les rectangles sont des carrés",
+      "Certains rectangles sont des carrés",
+      "Aucun rectangle n’est un carré",
+      "On ne peut pas savoir",
     ],
-    answer: "La vérifier avec une source fiable",
+    answer: "Certains rectangles sont des carrés",
   },
   {
     question:
-      "Si une solution semble rapide et facile, cela signifie-t-il forcément qu’elle est correcte ?",
-    aiHelp:
-      "La rapidité d’une solution ne garantit pas sa validité. Il faut vérifier le raisonnement.",
-    options: [
-      "Oui, toujours",
-      "Non, il faut vérifier",
-      "Oui, si elle est courte",
-      "Non, une solution rapide est toujours fausse",
-    ],
-    answer: "Non, il faut vérifier",
+      "Un objet coûte 80€ après une réduction de 20%. Quel était son prix initial ?",
+    aiHelp: "Attention : la réduction s’applique sur le prix de départ.",
+    options: ["100€", "96€", "90€", "120€"],
+    answer: "100€",
   },
   {
     question:
-      "Une IA donne une réponse très convaincante, mais sans justification. Quelle attitude adopter ?",
-    aiHelp:
-      "Une réponse convaincante peut être fausse. Il faut chercher les raisons qui la soutiennent.",
-    options: [
-      "L’accepter directement",
-      "Demander ou chercher une justification",
-      "La copier telle quelle",
-      "La considérer comme une preuve",
-    ],
-    answer: "Demander ou chercher une justification",
+      "Si 5 machines produisent 5 pièces en 5 minutes, combien de pièces produisent 10 machines en 5 minutes ?",
+    aiHelp: "Raisonne en termes de productivité individuelle.",
+    options: ["5", "10", "20", "50"],
+    answer: "10",
+  },
+  {
+    question: "Quel mot ne correspond pas aux autres ?",
+    aiHelp: "Cherche la catégorie commune.",
+    options: ["Triangle", "Carré", "Cercle", "Voiture"],
+    answer: "Voiture",
+  },
+  {
+    question: "Si A → B et B → C, alors :",
+    aiHelp: "Applique la transitivité logique.",
+    options: ["A → C", "C → A", "A ↔ C", "Impossible"],
+    answer: "A → C",
+  },
+  {
+    question: "Un prix augmente de 10% puis diminue de 10%. Résultat ?",
+    aiHelp: "Les pourcentages ne s’appliquent pas sur la même base.",
+    options: ["Même prix", "Plus élevé", "Plus bas", "Impossible"],
+    answer: "Plus bas",
+  },
+  {
+    question: "Combien de diagonales possède un polygone à 6 côtés ?",
+    aiHelp: "Utilise la formule liée au nombre de sommets.",
+    options: ["6", "9", "12", "15"],
+    answer: "9",
+  },
+  {
+    question: "Si f(x) = 2x + 3 et f(x) = 11, alors x = ?",
+    aiHelp: "Résous une équation simple.",
+    options: ["3", "4", "5", "6"],
+    answer: "4",
   },
   {
     question:
-      "Dans une décision importante, quel est le rôle idéal d’un outil numérique ?",
-    aiHelp:
-      "Un outil peut aider à organiser les informations, mais la décision doit rester réfléchie.",
-    options: [
-      "Décider à la place de l’utilisateur",
-      "Aider à comparer les options",
-      "Remplacer totalement la réflexion",
-      "Donner toujours la bonne réponse",
-    ],
-    answer: "Aider à comparer les options",
+      "Un événement a une probabilité de 0,2. Quelle est la probabilité qu’il ne se produise pas ?",
+    aiHelp: "Utilise la complémentarité.",
+    options: ["0,2", "0,8", "1", "0,5"],
+    answer: "0,8",
   },
   {
     question:
-      "Si deux personnes ont des avis opposés sur un sujet, que faut-il faire pour mieux comprendre ?",
-    aiHelp:
-      "Comparer les arguments permet souvent de mieux évaluer une situation.",
-    options: [
-      "Choisir l’avis le plus populaire",
-      "Comparer les arguments et les preuves",
-      "Ignorer les deux avis",
-      "Croire la personne la plus sûre d’elle",
-    ],
-    answer: "Comparer les arguments et les preuves",
+      "Si une population double tous les 10 ans, par combien est-elle multipliée en 20 ans ?",
+    aiHelp: "Attention à l’effet exponentiel.",
+    options: ["2", "3", "4", "10"],
+    answer: "4",
   },
   {
     question:
-      "Une personne réussit un exercice grâce à une aide, mais ne sait pas l’expliquer. Quel est le principal problème ?",
-    aiHelp:
-      "Réussir une tâche ne signifie pas toujours comprendre le raisonnement.",
+      "Une suite vérifie u(n+1) = u(n) + 3 avec u(0)=2. Quelle est la valeur de u(3) ?",
+    aiHelp: "Calcule étape par étape.",
+    options: ["8", "9", "10", "11"],
+    answer: "11",
+  },
+  {
+    question: "Si une fonction est dérivable, alors elle est :",
+    aiHelp: "Pense aux propriétés mathématiques fondamentales.",
+    options: ["Continue", "Discontinue", "Constante", "Bornée"],
+    answer: "Continue",
+  },
+  {
+    question: "Une variable suit une distribution uniforme. Que signifie cela ?",
+    aiHelp: "Réfléchis à la répartition des probabilités.",
     options: [
-      "Elle a forcément compris",
-      "Elle risque de ne pas savoir refaire seule",
-      "Elle devient plus autonome",
-      "Elle n’a plus besoin d’apprendre",
+      "Toutes les valeurs sont équiprobables",
+      "Une valeur domine",
+      "Distribution normale",
+      "Distribution exponentielle",
     ],
-    answer: "Elle risque de ne pas savoir refaire seule",
+    answer: "Toutes les valeurs sont équiprobables",
   },
   {
     question:
-      "Pourquoi est-il important de reformuler une réponse avec ses propres mots ?",
-    aiHelp:
-      "Reformuler permet de vérifier si l’on a réellement compris.",
+      "Si une hypothèse implique une conclusion fausse, que peut-on dire de l’hypothèse ?",
+    aiHelp: "Raisonne en logique contraposée.",
     options: [
-      "Pour écrire plus vite",
-      "Pour vérifier sa compréhension",
-      "Pour éviter de réfléchir",
-      "Pour rendre la réponse plus longue",
+      "Elle est vraie",
+      "Elle est fausse",
+      "On ne peut pas conclure",
+      "Elle est partiellement vraie",
     ],
-    answer: "Pour vérifier sa compréhension",
+    answer: "Elle est fausse",
   },
   {
     question:
-      "Si une information est répétée plusieurs fois sur différents sites, cela signifie-t-il forcément qu’elle est vraie ?",
-    aiHelp:
-      "La répétition d’une information ne suffit pas. Il faut vérifier l’origine et la fiabilité.",
-    options: [
-      "Oui, forcément",
-      "Non, elle doit être vérifiée",
-      "Oui, si elle apparaît souvent",
-      "Non, une information répétée est toujours fausse",
-    ],
-    answer: "Non, elle doit être vérifiée",
+      "Dans un raisonnement scientifique, une corrélation forte implique-t-elle une causalité ?",
+    aiHelp: "Fais la distinction entre relation et cause.",
+    options: ["Oui", "Non", "Toujours", "Seulement parfois"],
+    answer: "Non",
   },
   {
     question:
-      "Une IA propose une réponse qui semble correcte, mais vous avez un doute. Que faire ?",
-    aiHelp:
-      "Le doute peut être utile. Il pousse à vérifier et à analyser.",
+      "Un algorithme donne toujours une réponse rapide mais parfois incorrecte. Que peut-on dire ?",
+    aiHelp: "Analyse le compromis entre performance et fiabilité.",
     options: [
-      "Ignorer le doute",
-      "Vérifier la réponse",
-      "Prendre la réponse directement",
-      "Changer de sujet",
+      "Il est optimal",
+      "Il privilégie la vitesse",
+      "Il est inutile",
+      "Il est parfait",
     ],
-    answer: "Vérifier la réponse",
+    answer: "Il privilégie la vitesse",
   },
   {
     question:
-      "Quel comportement montre le plus d’autonomie cognitive ?",
-    aiHelp:
-      "L’autonomie consiste à utiliser une aide sans abandonner son propre jugement.",
+      "Si une conclusion dépend fortement des hypothèses initiales, que faut-il faire ?",
+    aiHelp: "Réfléchis à la robustesse d’un modèle.",
     options: [
-      "Suivre l’IA sans réfléchir",
-      "Comparer l’aide avec son propre raisonnement",
-      "Demander toutes les réponses à l’IA",
-      "Ne jamais vérifier",
+      "Ignorer les hypothèses",
+      "Tester différentes hypothèses",
+      "Garder une seule hypothèse",
+      "Arrêter l’analyse",
     ],
-    answer: "Comparer l’aide avec son propre raisonnement",
+    answer: "Tester différentes hypothèses",
   },
   {
     question:
-      "Une personne utilise l’IA pour comprendre une notion difficile. Quelle est la meilleure utilisation ?",
-    aiHelp:
-      "L’IA peut être utile si elle sert à apprendre et non seulement à obtenir une réponse.",
+      "Une IA fournit une réponse plausible mais non vérifiable. Quel est le principal risque ?",
+    aiHelp: "Pense au concept de confiance excessive.",
     options: [
-      "Copier la réponse",
-      "Demander une explication et essayer de comprendre",
-      "Éviter de lire la réponse",
-      "Utiliser l’IA pour tout faire",
+      "Gain de temps",
+      "Erreur acceptée comme vraie",
+      "Amélioration de la réflexion",
+      "Aucun risque",
     ],
-    answer: "Demander une explication et essayer de comprendre",
+    answer: "Erreur acceptée comme vraie",
   },
   {
     question:
-      "Si une conclusion est basée sur un seul exemple, quel est le risque ?",
-    aiHelp:
-      "Un seul exemple ne suffit généralement pas à établir une conclusion générale.",
+      "Dans un modèle prédictif, que signifie un surapprentissage (overfitting) ?",
+    aiHelp: "Réfléchis à la capacité de généralisation.",
     options: [
-      "La conclusion est forcément vraie",
-      "La conclusion peut être trop générale",
-      "La conclusion est une preuve scientifique",
-      "L’exemple suffit toujours",
+      "Le modèle apprend trop les données d’entraînement",
+      "Le modèle ne fonctionne pas",
+      "Le modèle est parfait",
+      "Le modèle est trop simple",
     ],
-    answer: "La conclusion peut être trop générale",
-  },
-  {
-    question:
-      "Pourquoi faut-il parfois prendre du temps avant de répondre ?",
-    aiHelp:
-      "Prendre du temps permet d’éviter les réponses automatiques ou impulsives.",
-    options: [
-      "Pour compliquer la réponse",
-      "Pour réfléchir et éviter les erreurs",
-      "Pour répondre plus lentement sans raison",
-      "Pour éviter de comprendre",
-    ],
-    answer: "Pour réfléchir et éviter les erreurs",
-  },
-  {
-    question:
-      "Une IA donne une explication longue. Cela signifie-t-il qu’elle est forcément meilleure ?",
-    aiHelp:
-      "La longueur d’une explication ne garantit pas sa qualité.",
-    options: [
-      "Oui, plus c’est long, plus c’est vrai",
-      "Non, il faut juger la qualité du raisonnement",
-      "Oui, si le vocabulaire est compliqué",
-      "Non, une explication longue est toujours fausse",
-    ],
-    answer: "Non, il faut juger la qualité du raisonnement",
-  },
-  {
-    question:
-      "Quel est le risque principal d’utiliser une IA pour répondre à toutes les questions sans effort personnel ?",
-    aiHelp:
-      "Une utilisation excessive peut réduire l’effort de raisonnement personnel.",
-    options: [
-      "Développer automatiquement son esprit critique",
-      "Devenir dépendant de l’aide extérieure",
-      "Mieux mémoriser sans travailler",
-      "Ne jamais faire d’erreur",
-    ],
-    answer: "Devenir dépendant de l’aide extérieure",
-  },
-  {
-    question:
-      "Face à une réponse IA, quelle question faut-il se poser en priorité ?",
-    aiHelp:
-      "Il est utile de questionner la fiabilité et la logique de la réponse.",
-    options: [
-      "Est-ce que la réponse est jolie ?",
-      "Est-ce que la réponse est logique et vérifiable ?",
-      "Est-ce que la réponse est longue ?",
-      "Est-ce que je peux la copier vite ?",
-    ],
-    answer: "Est-ce que la réponse est logique et vérifiable ?",
-  },
-  {
-    question:
-      "Si une personne comprend mieux après avoir comparé sa réponse avec celle de l’IA, que montre cela ?",
-    aiHelp:
-      "L’IA peut servir de support d’apprentissage si elle est utilisée activement.",
-    options: [
-      "L’IA a remplacé sa réflexion",
-      "L’IA a servi d’aide à la réflexion",
-      "La personne n’a rien appris",
-      "La personne doit toujours suivre l’IA",
-    ],
-    answer: "L’IA a servi d’aide à la réflexion",
-  },
-  {
-    question:
-      "Pourquoi est-il utile de vérifier plusieurs sources avant de conclure ?",
-    aiHelp:
-      "Comparer plusieurs sources réduit le risque de se baser sur une information fausse ou isolée.",
-    options: [
-      "Pour perdre du temps",
-      "Pour renforcer la fiabilité de l’information",
-      "Pour éviter de réfléchir",
-      "Pour choisir la source la plus courte",
-    ],
-    answer: "Pour renforcer la fiabilité de l’information",
-  },
-  {
-    question:
-      "Une personne accepte une réponse uniquement parce qu’elle vient d’une IA. Quel biais cela peut-il montrer ?",
-    aiHelp:
-      "Il peut y avoir une confiance excessive envers l’autorité perçue de l’outil.",
-    options: [
-      "Un esprit critique élevé",
-      "Une confiance excessive dans l’outil",
-      "Une autonomie totale",
-      "Une absence d’influence",
-    ],
-    answer: "Une confiance excessive dans l’outil",
-  },
-  {
-    question:
-      "Quelle phrase décrit le mieux une bonne utilisation de l’IA dans un apprentissage ?",
-    aiHelp:
-      "Une bonne utilisation garde l’humain actif dans le raisonnement.",
-    options: [
-      "L’IA fait tout à ma place",
-      "L’IA m’aide, mais je garde mon jugement",
-      "Je copie sans vérifier",
-      "Je ne réfléchis plus",
-    ],
-    answer: "L’IA m’aide, mais je garde mon jugement",
+    answer: "Le modèle apprend trop les données d’entraînement",
   },
 ];
 
@@ -277,6 +183,10 @@ export default function Test2Page() {
   const [aiInteractions, setAiInteractions] = useState<any[]>([]);
   const [aiUsageCount, setAiUsageCount] = useState(0);
   const [showAiHelp, setShowAiHelp] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiUsedForCurrentQuestion, setAiUsedForCurrentQuestion] =
+    useState(false);
+  const [currentAiResponse, setCurrentAiResponse] = useState("");
   const [questionStartTime, setQuestionStartTime] = useState(Date.now());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -284,31 +194,60 @@ export default function Test2Page() {
   const question = questions[current];
 
   async function askAi() {
-    if (aiUsageCount >= MAX_AI_USAGE) return;
+    if (aiUsageCount >= MAX_AI_USAGE || aiUsedForCurrentQuestion || aiLoading) {
+      return;
+    }
 
     setShowAiHelp(true);
+    setAiLoading(true);
+    setCurrentAiResponse("");
     setAiUsageCount((prev) => prev + 1);
+    setAiUsedForCurrentQuestion(true);
 
-    const res = await fetch("/api/ai-help", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        question: question.question,
-      }),
-    });
+    try {
+      const res = await fetch("/api/ai-help", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          question: question.question,
+        }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    setAiInteractions((prev) => [
-      ...prev,
-      {
-        question: question.question,
-        prompt: "Demande d’aide IA",
-        aiResponse: data.result,
-      },
-    ]);
+      const aiResponse =
+        data.result ||
+        "L’IA n’a pas pu répondre. Essayez d’analyser la logique de la question par vous-même.";
+
+      setCurrentAiResponse(aiResponse);
+
+      setAiInteractions((prev) => [
+        ...prev,
+        {
+          question: question.question,
+          prompt: "Demande d’aide IA",
+          aiResponse,
+        },
+      ]);
+    } catch {
+      const fallback =
+        "Erreur lors de l’appel à l’IA. Essayez de raisonner étape par étape à partir des informations données.";
+
+      setCurrentAiResponse(fallback);
+
+      setAiInteractions((prev) => [
+        ...prev,
+        {
+          question: question.question,
+          prompt: "Demande d’aide IA",
+          aiResponse: fallback,
+        },
+      ]);
+    } finally {
+      setAiLoading(false);
+    }
   }
 
   async function handleNext() {
@@ -331,10 +270,12 @@ export default function Test2Page() {
     setAnswers(newAnswers);
     setSelected("");
     setShowAiHelp(false);
+    setCurrentAiResponse("");
 
     if (current < questions.length - 1) {
       setCurrent((prev) => prev + 1);
       setQuestionStartTime(Date.now());
+      setAiUsedForCurrentQuestion(false);
       return;
     }
 
@@ -371,7 +312,6 @@ export default function Test2Page() {
   return (
     <main className="min-h-screen flex items-center justify-center px-6 py-10">
       <section className="max-w-3xl w-full bg-white/70 backdrop-blur-md rounded-3xl shadow-xl border border-white/50 p-8">
-
         <p className="text-sm uppercase tracking-widest text-slate-500 mb-3">
           Test 2 — Avec IA
         </p>
@@ -406,6 +346,7 @@ export default function Test2Page() {
           <p className="text-slate-500 mb-2">
             Question {current + 1} / {questions.length}
           </p>
+
           <h2 className="text-lg font-semibold text-black">
             {question.question}
           </h2>
@@ -413,15 +354,28 @@ export default function Test2Page() {
 
         <button
           onClick={askAi}
-          disabled={aiUsageCount >= MAX_AI_USAGE}
+          disabled={
+            aiUsageCount >= MAX_AI_USAGE ||
+            aiUsedForCurrentQuestion ||
+            aiLoading
+          }
           className="mb-4 rounded-xl border border-slate-300 bg-white/80 backdrop-blur px-4 py-2 text-black font-semibold hover:bg-slate-100 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          💡 Demander l’aide de l’IA
+          {aiLoading
+            ? "L’IA réfléchit..."
+            : aiUsedForCurrentQuestion
+            ? "Aide IA déjà utilisée pour cette question"
+            : "💡 Demander l’aide de l’IA"}
         </button>
 
         {showAiHelp && (
           <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl mb-6">
-            <p className="text-blue-900">{aiInteractions[aiInteractions.length - 1]?.aiResponse}</p>
+            <p className="text-sm font-semibold text-blue-900 mb-2">
+              Aide de l’IA :
+            </p>
+            <p className="text-blue-900">
+              {aiLoading ? "L’IA prépare une piste de réflexion..." : currentAiResponse}
+            </p>
           </div>
         )}
 
@@ -441,11 +395,20 @@ export default function Test2Page() {
           ))}
         </div>
 
+        {error && (
+          <p className="rounded-xl bg-red-50 border border-red-200 text-red-700 p-3 text-sm mb-4">
+            {error}
+          </p>
+        )}
+
         <button
           onClick={handleNext}
-          className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 text-white font-semibold"
+          disabled={!selected || loading}
+          className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {current === questions.length - 1
+          {loading
+            ? "Enregistrement..."
+            : current === questions.length - 1
             ? "Terminer le test"
             : "Question suivante"}
         </button>
