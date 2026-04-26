@@ -31,9 +31,7 @@ export default async function AdminDashboardPage() {
   const cookieStore = await cookies();
   const role = cookieStore.get("role")?.value;
 
-  if (role !== "ADMIN") {
-    redirect("/");
-  }
+  if (role !== "ADMIN") redirect("/");
 
   const users = (await prisma.user.findMany({
     where: { role: "PARTICIPANT" },
@@ -55,28 +53,26 @@ export default async function AdminDashboardPage() {
 
     return {
       participant: user.pseudo,
-      age: user.age,
-      educationLevel: user.educationLevel,
-      aiUsageFrequency: user.aiUsageFrequency,
       test1: test1Percent,
       test2: test2Percent,
-      aiUsage: test2?.aiUsageCount ?? 0,
       gap,
+      aiUsage: test2?.aiUsageCount ?? 0,
+      aiUsageFrequency: user.aiUsageFrequency,
       hasBothTests: Boolean(test1 && test2),
     };
   });
 
   const completedRows = rows.filter((row) => row.hasBothTests);
 
-  const avg = (values: number[]) =>
-    values.length === 0
-      ? 0
-      : Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+  const average = (values: number[]) => {
+    if (values.length === 0) return 0;
+    return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+  };
 
-  const avgTest1 = avg(completedRows.map((row) => row.test1));
-  const avgTest2 = avg(completedRows.map((row) => row.test2));
-  const avgGap = avg(completedRows.map((row) => row.gap));
-  const avgAiUsage = avg(completedRows.map((row) => row.aiUsage));
+  const avgTest1 = average(completedRows.map((row) => row.test1));
+  const avgTest2 = average(completedRows.map((row) => row.test2));
+  const avgGap = average(completedRows.map((row) => row.gap));
+  const avgAiUsage = average(completedRows.map((row) => row.aiUsage));
 
   const improvedCount = completedRows.filter((row) => row.gap > 0).length;
   const stableCount = completedRows.filter((row) => row.gap === 0).length;
@@ -88,11 +84,11 @@ export default async function AdminDashboardPage() {
       : Math.round((improvedCount / completedRows.length) * 100);
 
   const comparisonData = [
-    { name: "Test 1 sans IA", score: avgTest1 },
-    { name: "Test 2 avec IA", score: avgTest2 },
+    { name: "Test 1", score: avgTest1 },
+    { name: "Test 2", score: avgTest2 },
   ];
 
-  const gapData = [
+  const gapDistributionData = [
     { name: "Progression", value: improvedCount },
     { name: "Stable", value: stableCount },
     { name: "Baisse", value: decreasedCount },
@@ -105,9 +101,9 @@ export default async function AdminDashboardPage() {
   }));
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-slate-900">
+    <main className="min-h-screen bg-slate-950 px-6 py-10">
       <section className="max-w-7xl mx-auto">
-        <div className="mb-8 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+        <header className="mb-8 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
           <div>
             <p className="text-sm uppercase tracking-widest text-blue-300">
               Panel administrateur
@@ -118,8 +114,8 @@ export default async function AdminDashboardPage() {
             </h1>
 
             <p className="text-slate-300 mt-3 max-w-3xl">
-              Analyse synthétique des résultats : comparaison entre raisonnement
-              sans IA et raisonnement avec assistance IA limitée.
+              Analyse claire des performances entre le test sans IA et le test
+              avec assistance IA limitée.
             </p>
           </div>
 
@@ -140,31 +136,35 @@ export default async function AdminDashboardPage() {
               </button>
             </form>
           </div>
-        </div>
+        </header>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
-          <StatCard label="Participants" value={users.length.toString()} />
+          <StatCard label="Participants" value={`${users.length}`} />
           <StatCard label="Moyenne Test 1" value={`${avgTest1} %`} color="blue" />
           <StatCard label="Moyenne Test 2" value={`${avgTest2} %`} color="green" />
-          <StatCard label="Gain moyen" value={`${avgGap > 0 ? "+" : ""}${avgGap} %`} color={avgGap >= 0 ? "green" : "red"} />
+          <StatCard
+            label="Gain moyen"
+            value={`${avgGap > 0 ? "+" : ""}${avgGap} %`}
+            color={avgGap >= 0 ? "green" : "red"}
+          />
           <StatCard label="Usage moyen IA" value={`${avgAiUsage} / 10`} color="purple" />
         </div>
 
-        <div className="mb-8 rounded-3xl bg-white p-6 shadow-xl border border-slate-200">
-          <h2 className="text-2xl font-extrabold text-slate-900 mb-2">
-            Synthèse scientifique rapide
+        <div className="rounded-3xl bg-white p-6 shadow-xl border border-slate-200 mb-8">
+          <h2 className="text-2xl font-extrabold text-slate-900">
+            Synthèse scientifique
           </h2>
 
-          <p className="text-slate-600">
+          <p className="text-slate-600 mt-3 leading-relaxed">
             {completedRows.length === 0
               ? "Aucune donnée complète n’est encore disponible."
-              : `${improvementRate}% des participants ont obtenu un meilleur score au test avec IA. Le gain moyen observé est de ${avgGap > 0 ? "+" : ""}${avgGap}%.`}
+              : `${improvementRate}% des participants ont amélioré leur score avec l’assistance IA. Le gain moyen observé est de ${avgGap > 0 ? "+" : ""}${avgGap}%. Ces résultats permettent d’observer si l’IA agit comme un soutien au raisonnement ou si son usage reste variable selon les profils.`}
           </p>
         </div>
 
         <AdminCharts
           comparisonData={comparisonData}
-          gapData={gapData}
+          gapDistributionData={gapDistributionData}
           correlationData={correlationData}
         />
 
@@ -174,7 +174,7 @@ export default async function AdminDashboardPage() {
               Résultats par participant
             </h2>
             <p className="text-slate-500 mt-1">
-              Tableau volontairement simplifié pour faciliter la lecture.
+              Vue simplifiée pour comparer rapidement les performances.
             </p>
           </div>
 
@@ -194,9 +194,11 @@ export default async function AdminDashboardPage() {
               <tbody className="divide-y divide-slate-200">
                 {rows.map((row) => (
                   <tr key={row.participant} className="hover:bg-slate-50">
-                    <td className="p-4 font-medium">{row.participant}</td>
-                    <td className="p-4">{row.test1} %</td>
-                    <td className="p-4">{row.test2} %</td>
+                    <td className="p-4 font-medium text-slate-900">
+                      {row.participant}
+                    </td>
+                    <td className="p-4 text-slate-700">{row.test1} %</td>
+                    <td className="p-4 text-slate-700">{row.test2} %</td>
                     <td className="p-4 font-bold">
                       <span
                         className={
@@ -211,8 +213,8 @@ export default async function AdminDashboardPage() {
                         {row.gap} %
                       </span>
                     </td>
-                    <td className="p-4">{row.aiUsage} / 10</td>
-                    <td className="p-4">{row.aiUsageFrequency}</td>
+                    <td className="p-4 text-slate-700">{row.aiUsage} / 10</td>
+                    <td className="p-4 text-slate-700">{row.aiUsageFrequency}</td>
                   </tr>
                 ))}
               </tbody>

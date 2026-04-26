@@ -23,7 +23,7 @@ type ComparisonData = {
   score: number;
 };
 
-type GapData = {
+type GapDistributionData = {
   name: string;
   value: number;
 };
@@ -36,11 +36,11 @@ type CorrelationData = {
 
 export default function AdminCharts({
   comparisonData,
-  gapData,
+  gapDistributionData,
   correlationData,
 }: {
   comparisonData: ComparisonData[];
-  gapData: GapData[];
+  gapDistributionData: GapDistributionData[];
   correlationData: CorrelationData[];
 }) {
   const trendData = getTrendLine(correlationData);
@@ -48,12 +48,12 @@ export default function AdminCharts({
   return (
     <div className="space-y-8">
       <ChartCard
-        title="Comparaison globale des scores"
-        description="Ce graphique compare la moyenne du test sans IA et celle du test avec assistance IA."
+        title="Comparaison globale Test 1 / Test 2"
+        description="Compare la moyenne du test sans IA et celle du test avec assistance IA."
       >
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={320}>
           <BarChart data={comparisonData}>
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
             <XAxis dataKey="name" tick={{ fill: "#334155" }} />
             <YAxis domain={[0, 100]} tick={{ fill: "#334155" }} />
             <Tooltip />
@@ -68,15 +68,15 @@ export default function AdminCharts({
       <div className="grid lg:grid-cols-2 gap-8">
         <ChartCard
           title="Répartition des évolutions"
-          description="Ce graphique montre combien de participants progressent, stagnent ou régressent avec l’aide IA."
+          description="Montre combien de participants progressent, stagnent ou régressent avec l’IA."
         >
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={320}>
             <PieChart>
               <Pie
-                data={gapData}
+                data={gapDistributionData}
                 dataKey="value"
                 nameKey="name"
-                outerRadius={100}
+                outerRadius={105}
                 label
               >
                 <Cell fill="#16a34a" />
@@ -90,12 +90,12 @@ export default function AdminCharts({
         </ChartCard>
 
         <ChartCard
-          title="Évolution moyenne par participant"
-          description="Chaque ligne représente le passage moyen du test sans IA au test avec IA."
+          title="Évolution moyenne"
+          description="Visualise simplement le passage du score moyen sans IA au score moyen avec IA."
         >
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={320}>
             <LineChart data={comparisonData}>
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="name" tick={{ fill: "#334155" }} />
               <YAxis domain={[0, 100]} tick={{ fill: "#334155" }} />
               <Tooltip />
@@ -104,7 +104,7 @@ export default function AdminCharts({
                 dataKey="score"
                 stroke="#7c3aed"
                 strokeWidth={4}
-                dot={{ r: 6 }}
+                dot={{ r: 7 }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -112,12 +112,12 @@ export default function AdminCharts({
       </div>
 
       <ChartCard
-        title="Corrélation entre usage de l’IA et score au Test 2"
+        title="Corrélation usage IA / score Test 2"
         description="Chaque point représente un participant. La ligne violette indique la tendance générale."
       >
-        <ResponsiveContainer width="100%" height={330}>
+        <ResponsiveContainer width="100%" height={340}>
           <ScatterChart>
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
             <XAxis
               type="number"
               dataKey="aiUsage"
@@ -138,15 +138,17 @@ export default function AdminCharts({
               data={correlationData}
               fill="#2563eb"
             />
-            <Line
-              type="linear"
-              dataKey="scoreTest2"
-              data={trendData}
-              stroke="#7c3aed"
-              strokeWidth={3}
-              dot={false}
-              name="Tendance"
-            />
+            {trendData.length > 0 && (
+              <Line
+                type="linear"
+                dataKey="scoreTest2"
+                data={trendData}
+                stroke="#7c3aed"
+                strokeWidth={3}
+                dot={false}
+                name="Tendance"
+              />
+            )}
           </ScatterChart>
         </ResponsiveContainer>
       </ChartCard>
@@ -191,11 +193,11 @@ function getTrendLine(data: CorrelationData[]) {
   return [
     {
       aiUsage: 0,
-      scoreTest2: Math.round(intercept),
+      scoreTest2: Math.max(0, Math.min(100, Math.round(intercept))),
     },
     {
       aiUsage: 10,
-      scoreTest2: Math.round(slope * 10 + intercept),
+      scoreTest2: Math.max(0, Math.min(100, Math.round(slope * 10 + intercept))),
     },
   ];
 }
