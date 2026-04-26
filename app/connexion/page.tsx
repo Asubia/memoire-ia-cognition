@@ -44,6 +44,7 @@ export default function ConnexionPage() {
     }
   }
 
+  const [showPassword, setShowPassword] = useState(false);
   const inputClass =
     "w-full rounded-xl border border-slate-300 px-4 py-3 text-black bg-white/90 focus:outline-none focus:ring-2 focus:ring-blue-500 transition";
 
@@ -66,13 +67,23 @@ export default function ConnexionPage() {
 
           <input
             name="password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             placeholder="Mot de passe"
             className={inputClass}
             value={form.password}
             onChange={updateField}
             required
           />
+
+          <label className="flex items-center gap-2 text-sm text-slate-600">
+            <input
+              type="checkbox"
+              checked={showPassword}
+              onChange={(e) => setShowPassword(e.target.checked)}
+              className="h-4 w-4"
+            />
+            Afficher le mot de passe
+          </label>
 
           {error && (
             <p className="text-red-600 text-sm">{error}</p>

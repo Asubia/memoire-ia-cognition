@@ -8,142 +8,263 @@ const MAX_AI_USAGE = 6;
 const questions = [
   {
     question:
-      "Une IA affirme : 'Tous les étudiants qui utilisent l’IA réussissent mieux.' Quelle est la meilleure analyse ?",
+      "Une personne lit une information sur Internet sans vérifier la source. Quel est le comportement le plus prudent ?",
     aiHelp:
-      "Cette affirmation semble générale. Il faudrait vérifier les données et les conditions avant de conclure.",
+      "Il faut distinguer une affirmation d’une preuve. Une information fiable doit pouvoir être vérifiée.",
     options: [
-      "C’est forcément vrai",
-      "C’est une généralisation qui doit être vérifiée",
-      "C’est faux dans tous les cas",
-      "C’est une preuve scientifique",
+      "La partager directement",
+      "La vérifier avec une source fiable",
+      "La croire si elle est bien écrite",
+      "L’ignorer sans réfléchir",
     ],
-    answer: "C’est une généralisation qui doit être vérifiée",
-  },
-  {
-    question: "Une réponse IA est bien écrite mais ne cite aucune source. Que faire ?",
-    aiHelp:
-      "Même si une réponse est claire, elle doit être vérifiée avec des sources fiables.",
-    options: [
-      "La croire directement",
-      "La vérifier avec d’autres sources",
-      "La copier",
-      "L’ignorer totalement",
-    ],
-    answer: "La vérifier avec d’autres sources",
-  },
-  {
-    question: "Une IA donne une réponse très rapide. Cela signifie :",
-    aiHelp:
-      "La rapidité ne garantit pas la fiabilité ou la qualité du raisonnement.",
-    options: [
-      "Qu’elle est forcément correcte",
-      "Qu’elle est fiable",
-      "Que la vitesse ne garantit pas la qualité",
-      "Qu’elle remplace l’analyse humaine",
-    ],
-    answer: "Que la vitesse ne garantit pas la qualité",
-  },
-  {
-    question: "Pourquoi faut-il garder un esprit critique face à l’IA ?",
-    aiHelp:
-      "Les IA peuvent produire des erreurs ou des biais, même si elles semblent convaincantes.",
-    options: [
-      "Parce qu’elle est lente",
-      "Parce qu’elle peut se tromper",
-      "Parce qu’elle est inutile",
-      "Parce qu’elle est difficile à utiliser",
-    ],
-    answer: "Parce qu’elle peut se tromper",
-  },
-  {
-    question: "Si tous les A sont B et que certains B sont C, alors :",
-    aiHelp:
-      "Il faut faire attention aux relations logiques : 'certains' ne signifie pas 'tous'.",
-    options: [
-      "Tous les A sont C",
-      "Certains A peuvent être C",
-      "Aucun A n’est C",
-      "On ne peut pas conclure",
-    ],
-    answer: "Certains A peuvent être C",
+    answer: "La vérifier avec une source fiable",
   },
   {
     question:
-      "Un étudiant obtient une bonne réponse grâce à l’IA sans comprendre. Quel est le risque principal ?",
+      "Si une solution semble rapide et facile, cela signifie-t-il forcément qu’elle est correcte ?",
     aiHelp:
-      "Comprendre le raisonnement est essentiel pour développer ses compétences.",
+      "La rapidité d’une solution ne garantit pas sa validité. Il faut vérifier le raisonnement.",
     options: [
-      "Il devient expert",
-      "Il ne développe pas ses compétences",
-      "Il gagne en autonomie",
-      "Il apprend plus vite",
+      "Oui, toujours",
+      "Non, il faut vérifier",
+      "Oui, si elle est courte",
+      "Non, une solution rapide est toujours fausse",
     ],
-    answer: "Il ne développe pas ses compétences",
+    answer: "Non, il faut vérifier",
   },
   {
     question:
-      "Une IA propose deux solutions différentes au même problème. Que faire ?",
+      "Une IA donne une réponse très convaincante, mais sans justification. Quelle attitude adopter ?",
     aiHelp:
-      "Comparer les solutions et analyser leur cohérence est essentiel.",
+      "Une réponse convaincante peut être fausse. Il faut chercher les raisons qui la soutiennent.",
     options: [
-      "Choisir au hasard",
-      "Analyser les deux réponses",
-      "Prendre la première",
-      "Ignorer les deux",
+      "L’accepter directement",
+      "Demander ou chercher une justification",
+      "La copier telle quelle",
+      "La considérer comme une preuve",
     ],
-    answer: "Analyser les deux réponses",
+    answer: "Demander ou chercher une justification",
   },
   {
     question:
-      "Une IA affirme : '2 + 2 = 5 car dans certains systèmes alternatifs c’est possible.' Que faire ?",
+      "Dans une décision importante, quel est le rôle idéal d’un outil numérique ?",
     aiHelp:
-      "Même si une explication semble complexe, il faut vérifier les bases logiques.",
-    options: ["Accepter", "Vérifier les bases mathématiques", "Copier", "Ignorer"],
-    answer: "Vérifier les bases mathématiques",
-  },
-  {
-    question: "Une IA invente une source crédible mais fausse. Cela s’appelle :",
-    aiHelp:
-      "Les IA peuvent générer des informations plausibles mais incorrectes.",
-    options: ["Une erreur logique", "Une hallucination", "Une preuve", "Une source fiable"],
-    answer: "Une hallucination",
-  },
-  {
-    question: "Pourquoi une IA peut-elle donner une mauvaise réponse ?",
-    aiHelp:
-      "Les IA apprennent à partir de données qui peuvent contenir des erreurs ou des biais.",
+      "Un outil peut aider à organiser les informations, mais la décision doit rester réfléchie.",
     options: [
-      "Parce qu’elle est lente",
-      "Parce qu’elle ne réfléchit pas comme un humain",
-      "Parce qu’elle est parfaite",
-      "Parce qu’elle est humaine",
-    ],
-    answer: "Parce qu’elle ne réfléchit pas comme un humain",
-  },
-  {
-    question:
-      "Un utilisateur suit toujours les réponses de l’IA sans réfléchir. Cela montre :",
-    aiHelp:
-      "L’absence d’analyse critique peut entraîner une dépendance cognitive.",
-    options: [
-      "Une autonomie forte",
-      "Une dépendance cognitive",
-      "Une intelligence élevée",
-      "Une capacité critique élevée",
-    ],
-    answer: "Une dépendance cognitive",
-  },
-  {
-    question: "Quel est le rôle idéal de l’IA dans un processus de réflexion ?",
-    aiHelp:
-      "L’IA doit être un outil d’aide, pas un remplacement du raisonnement.",
-    options: [
-      "Remplacer l’utilisateur",
-      "Aider à réfléchir",
-      "Donner uniquement des réponses",
       "Décider à la place de l’utilisateur",
+      "Aider à comparer les options",
+      "Remplacer totalement la réflexion",
+      "Donner toujours la bonne réponse",
     ],
-    answer: "Aider à réfléchir",
+    answer: "Aider à comparer les options",
+  },
+  {
+    question:
+      "Si deux personnes ont des avis opposés sur un sujet, que faut-il faire pour mieux comprendre ?",
+    aiHelp:
+      "Comparer les arguments permet souvent de mieux évaluer une situation.",
+    options: [
+      "Choisir l’avis le plus populaire",
+      "Comparer les arguments et les preuves",
+      "Ignorer les deux avis",
+      "Croire la personne la plus sûre d’elle",
+    ],
+    answer: "Comparer les arguments et les preuves",
+  },
+  {
+    question:
+      "Une personne réussit un exercice grâce à une aide, mais ne sait pas l’expliquer. Quel est le principal problème ?",
+    aiHelp:
+      "Réussir une tâche ne signifie pas toujours comprendre le raisonnement.",
+    options: [
+      "Elle a forcément compris",
+      "Elle risque de ne pas savoir refaire seule",
+      "Elle devient plus autonome",
+      "Elle n’a plus besoin d’apprendre",
+    ],
+    answer: "Elle risque de ne pas savoir refaire seule",
+  },
+  {
+    question:
+      "Pourquoi est-il important de reformuler une réponse avec ses propres mots ?",
+    aiHelp:
+      "Reformuler permet de vérifier si l’on a réellement compris.",
+    options: [
+      "Pour écrire plus vite",
+      "Pour vérifier sa compréhension",
+      "Pour éviter de réfléchir",
+      "Pour rendre la réponse plus longue",
+    ],
+    answer: "Pour vérifier sa compréhension",
+  },
+  {
+    question:
+      "Si une information est répétée plusieurs fois sur différents sites, cela signifie-t-il forcément qu’elle est vraie ?",
+    aiHelp:
+      "La répétition d’une information ne suffit pas. Il faut vérifier l’origine et la fiabilité.",
+    options: [
+      "Oui, forcément",
+      "Non, elle doit être vérifiée",
+      "Oui, si elle apparaît souvent",
+      "Non, une information répétée est toujours fausse",
+    ],
+    answer: "Non, elle doit être vérifiée",
+  },
+  {
+    question:
+      "Une IA propose une réponse qui semble correcte, mais vous avez un doute. Que faire ?",
+    aiHelp:
+      "Le doute peut être utile. Il pousse à vérifier et à analyser.",
+    options: [
+      "Ignorer le doute",
+      "Vérifier la réponse",
+      "Prendre la réponse directement",
+      "Changer de sujet",
+    ],
+    answer: "Vérifier la réponse",
+  },
+  {
+    question:
+      "Quel comportement montre le plus d’autonomie cognitive ?",
+    aiHelp:
+      "L’autonomie consiste à utiliser une aide sans abandonner son propre jugement.",
+    options: [
+      "Suivre l’IA sans réfléchir",
+      "Comparer l’aide avec son propre raisonnement",
+      "Demander toutes les réponses à l’IA",
+      "Ne jamais vérifier",
+    ],
+    answer: "Comparer l’aide avec son propre raisonnement",
+  },
+  {
+    question:
+      "Une personne utilise l’IA pour comprendre une notion difficile. Quelle est la meilleure utilisation ?",
+    aiHelp:
+      "L’IA peut être utile si elle sert à apprendre et non seulement à obtenir une réponse.",
+    options: [
+      "Copier la réponse",
+      "Demander une explication et essayer de comprendre",
+      "Éviter de lire la réponse",
+      "Utiliser l’IA pour tout faire",
+    ],
+    answer: "Demander une explication et essayer de comprendre",
+  },
+  {
+    question:
+      "Si une conclusion est basée sur un seul exemple, quel est le risque ?",
+    aiHelp:
+      "Un seul exemple ne suffit généralement pas à établir une conclusion générale.",
+    options: [
+      "La conclusion est forcément vraie",
+      "La conclusion peut être trop générale",
+      "La conclusion est une preuve scientifique",
+      "L’exemple suffit toujours",
+    ],
+    answer: "La conclusion peut être trop générale",
+  },
+  {
+    question:
+      "Pourquoi faut-il parfois prendre du temps avant de répondre ?",
+    aiHelp:
+      "Prendre du temps permet d’éviter les réponses automatiques ou impulsives.",
+    options: [
+      "Pour compliquer la réponse",
+      "Pour réfléchir et éviter les erreurs",
+      "Pour répondre plus lentement sans raison",
+      "Pour éviter de comprendre",
+    ],
+    answer: "Pour réfléchir et éviter les erreurs",
+  },
+  {
+    question:
+      "Une IA donne une explication longue. Cela signifie-t-il qu’elle est forcément meilleure ?",
+    aiHelp:
+      "La longueur d’une explication ne garantit pas sa qualité.",
+    options: [
+      "Oui, plus c’est long, plus c’est vrai",
+      "Non, il faut juger la qualité du raisonnement",
+      "Oui, si le vocabulaire est compliqué",
+      "Non, une explication longue est toujours fausse",
+    ],
+    answer: "Non, il faut juger la qualité du raisonnement",
+  },
+  {
+    question:
+      "Quel est le risque principal d’utiliser une IA pour répondre à toutes les questions sans effort personnel ?",
+    aiHelp:
+      "Une utilisation excessive peut réduire l’effort de raisonnement personnel.",
+    options: [
+      "Développer automatiquement son esprit critique",
+      "Devenir dépendant de l’aide extérieure",
+      "Mieux mémoriser sans travailler",
+      "Ne jamais faire d’erreur",
+    ],
+    answer: "Devenir dépendant de l’aide extérieure",
+  },
+  {
+    question:
+      "Face à une réponse IA, quelle question faut-il se poser en priorité ?",
+    aiHelp:
+      "Il est utile de questionner la fiabilité et la logique de la réponse.",
+    options: [
+      "Est-ce que la réponse est jolie ?",
+      "Est-ce que la réponse est logique et vérifiable ?",
+      "Est-ce que la réponse est longue ?",
+      "Est-ce que je peux la copier vite ?",
+    ],
+    answer: "Est-ce que la réponse est logique et vérifiable ?",
+  },
+  {
+    question:
+      "Si une personne comprend mieux après avoir comparé sa réponse avec celle de l’IA, que montre cela ?",
+    aiHelp:
+      "L’IA peut servir de support d’apprentissage si elle est utilisée activement.",
+    options: [
+      "L’IA a remplacé sa réflexion",
+      "L’IA a servi d’aide à la réflexion",
+      "La personne n’a rien appris",
+      "La personne doit toujours suivre l’IA",
+    ],
+    answer: "L’IA a servi d’aide à la réflexion",
+  },
+  {
+    question:
+      "Pourquoi est-il utile de vérifier plusieurs sources avant de conclure ?",
+    aiHelp:
+      "Comparer plusieurs sources réduit le risque de se baser sur une information fausse ou isolée.",
+    options: [
+      "Pour perdre du temps",
+      "Pour renforcer la fiabilité de l’information",
+      "Pour éviter de réfléchir",
+      "Pour choisir la source la plus courte",
+    ],
+    answer: "Pour renforcer la fiabilité de l’information",
+  },
+  {
+    question:
+      "Une personne accepte une réponse uniquement parce qu’elle vient d’une IA. Quel biais cela peut-il montrer ?",
+    aiHelp:
+      "Il peut y avoir une confiance excessive envers l’autorité perçue de l’outil.",
+    options: [
+      "Un esprit critique élevé",
+      "Une confiance excessive dans l’outil",
+      "Une autonomie totale",
+      "Une absence d’influence",
+    ],
+    answer: "Une confiance excessive dans l’outil",
+  },
+  {
+    question:
+      "Quelle phrase décrit le mieux une bonne utilisation de l’IA dans un apprentissage ?",
+    aiHelp:
+      "Une bonne utilisation garde l’humain actif dans le raisonnement.",
+    options: [
+      "L’IA fait tout à ma place",
+      "L’IA m’aide, mais je garde mon jugement",
+      "Je copie sans vérifier",
+      "Je ne réfléchis plus",
+    ],
+    answer: "L’IA m’aide, mais je garde mon jugement",
   },
 ];
 
