@@ -41,260 +41,212 @@ export default async function AdminDashboardPage() {
     orderBy: { createdAt: "desc" },
   })) as UserWithSessions[];
 
-  const allSessions: TestSessionLike[] = users.flatMap(
-    (user: UserWithSessions) => user.sessions
-  );
+  const rows = users.map((user) => {
+    const test1 = user.sessions.find((s) => s.testType === "TEST_1");
+    const test2 = user.sessions.find((s) => s.testType === "TEST_2");
 
-  const test1Sessions: TestSessionLike[] = allSessions.filter(
-    (session: TestSessionLike) => session.testType === "TEST_1"
-  );
+    const test1Percent =
+      test1 && test1.total ? Math.round((test1.score / test1.total) * 100) : 0;
 
-  const test2Sessions: TestSessionLike[] = allSessions.filter(
-    (session: TestSessionLike) => session.testType === "TEST_2"
-  );
+    const test2Percent =
+      test2 && test2.total ? Math.round((test2.score / test2.total) * 100) : 0;
 
-  const average = (sessions: TestSessionLike[]) => {
-    if (sessions.length === 0) return 0;
-
-    const total = sessions.reduce((sum: number, session: TestSessionLike) => {
-      if (!session.total || session.total === 0) return sum;
-      return sum + (session.score / session.total) * 100;
-    }, 0);
-
-    return Math.round(total / sessions.length);
-  };
-
-  const avgTest1 = average(test1Sessions);
-  const avgTest2 = average(test2Sessions);
-
-  const avgAiUsage =
-    test2Sessions.length === 0
-      ? 0
-      : Math.round(
-          test2Sessions.reduce(
-            (sum: number, session: TestSessionLike) =>
-              sum + (session.aiUsageCount ?? 0),
-            0
-          ) / test2Sessions.length
-        );
-
-  const comparisonData = [
-    { name: "Test 1", moyenne: avgTest1 },
-    { name: "Test 2", moyenne: avgTest2 },
-  ];
-
-  const userProgressData = users.map((user: UserWithSessions) => {
-    const test1 = user.sessions.find(
-      (session: TestSessionLike) => session.testType === "TEST_1"
-    );
-
-    const test2 = user.sessions.find(
-      (session: TestSessionLike) => session.testType === "TEST_2"
-    );
+    const gap = test2Percent - test1Percent;
 
     return {
       participant: user.pseudo,
-      test1:
-        test1 && test1.total
-          ? Math.round((test1.score / test1.total) * 100)
-          : 0,
-      test2:
-        test2 && test2.total
-          ? Math.round((test2.score / test2.total) * 100)
-          : 0,
+      age: user.age,
+      educationLevel: user.educationLevel,
+      aiUsageFrequency: user.aiUsageFrequency,
+      test1: test1Percent,
+      test2: test2Percent,
+      aiUsage: test2?.aiUsageCount ?? 0,
+      gap,
+      hasBothTests: Boolean(test1 && test2),
     };
   });
 
-  const correlationData = users
-    .map((user: UserWithSessions) => {
-      const test2 = user.sessions.find(
-        (session: TestSessionLike) => session.testType === "TEST_2"
-      );
+  const completedRows = rows.filter((row) => row.hasBothTests);
 
-      if (!test2 || !test2.total) return null;
+  const avg = (values: number[]) =>
+    values.length === 0
+      ? 0
+      : Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
 
-      return {
-        participant: user.pseudo,
-        aiUsage: test2.aiUsageCount ?? 0,
-        scoreTest2: Math.round((test2.score / test2.total) * 100),
-      };
-    })
-    .filter(
-      (
-        item
-      ): item is {
-        participant: string;
-        aiUsage: number;
-        scoreTest2: number;
-      } => item !== null
-    );
+  const avgTest1 = avg(completedRows.map((row) => row.test1));
+  const avgTest2 = avg(completedRows.map((row) => row.test2));
+  const avgGap = avg(completedRows.map((row) => row.gap));
+  const avgAiUsage = avg(completedRows.map((row) => row.aiUsage));
+
+  const improvedCount = completedRows.filter((row) => row.gap > 0).length;
+  const stableCount = completedRows.filter((row) => row.gap === 0).length;
+  const decreasedCount = completedRows.filter((row) => row.gap < 0).length;
+
+  const improvementRate =
+    completedRows.length === 0
+      ? 0
+      : Math.round((improvedCount / completedRows.length) * 100);
+
+  const comparisonData = [
+    { name: "Test 1 sans IA", score: avgTest1 },
+    { name: "Test 2 avec IA", score: avgTest2 },
+  ];
+
+  const gapData = [
+    { name: "Progression", value: improvedCount },
+    { name: "Stable", value: stableCount },
+    { name: "Baisse", value: decreasedCount },
+  ];
+
+  const correlationData = completedRows.map((row) => ({
+    participant: row.participant,
+    aiUsage: row.aiUsage,
+    scoreTest2: row.test2,
+  }));
 
   return (
-    <main className="min-h-screen px-6 py-10">
-      <section className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <p className="text-sm uppercase tracking-widest text-slate-500">
-            Panel administrateur
-          </p>
+    <main className="min-h-screen bg-slate-950 px-6 py-10 text-slate-900">
+      <section className="max-w-7xl mx-auto">
+        <div className="mb-8 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+          <div>
+            <p className="text-sm uppercase tracking-widest text-blue-300">
+              Panel administrateur
+            </p>
 
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-2">
-            <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">
-              Tableau de bord de l’
-              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                étude IA
-              </span>
+            <h1 className="text-4xl font-extrabold text-white mt-2">
+              Tableau de bord de l’étude IA
             </h1>
 
-            <div className="flex gap-3">
-              <a
-                href="/api/admin/export"
-                className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-white font-semibold shadow-md hover:scale-[1.02] hover:shadow-lg transition"
-              >
-                Exporter CSV
-              </a>
-
-              <form action="/api/logout" method="POST">
-                <button
-                  type="submit"
-                  className="rounded-xl bg-red-500 px-4 py-2 text-white font-semibold hover:bg-red-600 transition"
-                >
-                  Se déconnecter
-                </button>
-              </form>
-            </div>
+            <p className="text-slate-300 mt-3 max-w-3xl">
+              Analyse synthétique des résultats : comparaison entre raisonnement
+              sans IA et raisonnement avec assistance IA limitée.
+            </p>
           </div>
 
-          <p className="text-slate-600 mt-3">
-            Visualisation des résultats collectés pour comparer le test sans IA
-            et le test avec assistance IA.
-          </p>
+          <div className="flex gap-3">
+            <a
+              href="/api/admin/export"
+              className="rounded-xl bg-blue-600 px-5 py-3 text-white font-semibold hover:bg-blue-700 transition"
+            >
+              Exporter CSV
+            </a>
 
-          <p className="text-slate-500 mt-2 italic">
-            Analyse comparative des performances avec et sans assistance IA.
-          </p>
+            <form action="/api/logout" method="POST">
+              <button
+                type="submit"
+                className="rounded-xl bg-red-500 px-5 py-3 text-white font-semibold hover:bg-red-600 transition"
+              >
+                Se déconnecter
+              </button>
+            </form>
+          </div>
         </div>
 
-        <div className="grid md:grid-cols-4 gap-5 mb-8">
-          <div className="bg-white/70 backdrop-blur-md rounded-3xl border border-white/50 p-6 shadow-xl">
-            <p className="text-slate-500 text-sm">Participants</p>
-            <p className="text-4xl font-extrabold text-slate-900 mt-2">
-              {users.length}
-            </p>
-          </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
+          <StatCard label="Participants" value={users.length.toString()} />
+          <StatCard label="Moyenne Test 1" value={`${avgTest1} %`} color="blue" />
+          <StatCard label="Moyenne Test 2" value={`${avgTest2} %`} color="green" />
+          <StatCard label="Gain moyen" value={`${avgGap > 0 ? "+" : ""}${avgGap} %`} color={avgGap >= 0 ? "green" : "red"} />
+          <StatCard label="Usage moyen IA" value={`${avgAiUsage} / 10`} color="purple" />
+        </div>
 
-          <div className="bg-white/70 backdrop-blur-md rounded-3xl border border-white/50 p-6 shadow-xl">
-            <p className="text-slate-500 text-sm">Moyenne Test 1</p>
-            <p className="text-4xl font-extrabold text-blue-600 mt-2">
-              {avgTest1} %
-            </p>
-          </div>
+        <div className="mb-8 rounded-3xl bg-white p-6 shadow-xl border border-slate-200">
+          <h2 className="text-2xl font-extrabold text-slate-900 mb-2">
+            Synthèse scientifique rapide
+          </h2>
 
-          <div className="bg-white/70 backdrop-blur-md rounded-3xl border border-white/50 p-6 shadow-xl">
-            <p className="text-slate-500 text-sm">Moyenne Test 2</p>
-            <p className="text-4xl font-extrabold text-green-600 mt-2">
-              {avgTest2} %
-            </p>
-          </div>
-
-          <div className="bg-white/70 backdrop-blur-md rounded-3xl border border-white/50 p-6 shadow-xl">
-            <p className="text-slate-500 text-sm">Usage moyen IA</p>
-            <p className="text-4xl font-extrabold text-purple-600 mt-2">
-              {avgAiUsage}
-            </p>
-          </div>
+          <p className="text-slate-600">
+            {completedRows.length === 0
+              ? "Aucune donnée complète n’est encore disponible."
+              : `${improvementRate}% des participants ont obtenu un meilleur score au test avec IA. Le gain moyen observé est de ${avgGap > 0 ? "+" : ""}${avgGap}%.`}
+          </p>
         </div>
 
         <AdminCharts
           comparisonData={comparisonData}
-          userProgressData={userProgressData}
+          gapData={gapData}
           correlationData={correlationData}
         />
 
-        <div className="bg-white/70 backdrop-blur-md rounded-3xl border border-white/50 shadow-xl overflow-hidden">
-          <div className="p-6 border-b border-white/50">
+        <div className="mt-8 rounded-3xl bg-white shadow-xl border border-slate-200 overflow-hidden">
+          <div className="p-6 border-b border-slate-200">
             <h2 className="text-2xl font-extrabold text-slate-900">
               Résultats par participant
             </h2>
+            <p className="text-slate-500 mt-1">
+              Tableau volontairement simplifié pour faciliter la lecture.
+            </p>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left">
-              <thead className="bg-slate-100/70 text-slate-700">
+              <thead className="bg-slate-100 text-slate-700">
                 <tr>
                   <th className="p-4">Participant</th>
-                  <th className="p-4">Âge</th>
-                  <th className="p-4">Usage IA déclaré</th>
                   <th className="p-4">Test 1</th>
                   <th className="p-4">Test 2</th>
-                  <th className="p-4">Aides IA</th>
                   <th className="p-4">Écart</th>
+                  <th className="p-4">Aides IA</th>
+                  <th className="p-4">Usage déclaré</th>
                 </tr>
               </thead>
 
               <tbody className="divide-y divide-slate-200">
-                {users.map((user: UserWithSessions) => {
-                  const test1 = user.sessions.find(
-                    (session: TestSessionLike) => session.testType === "TEST_1"
-                  );
-
-                  const test2 = user.sessions.find(
-                    (session: TestSessionLike) => session.testType === "TEST_2"
-                  );
-
-                  const test1Percent =
-                    test1 && test1.total
-                      ? Math.round((test1.score / test1.total) * 100)
-                      : null;
-
-                  const test2Percent =
-                    test2 && test2.total
-                      ? Math.round((test2.score / test2.total) * 100)
-                      : null;
-
-                  const gap =
-                    test1Percent !== null && test2Percent !== null
-                      ? test2Percent - test1Percent
-                      : null;
-
-                  return (
-                    <tr
-                      key={user.id}
-                      className="text-slate-800 hover:bg-white/60 transition"
-                    >
-                      <td className="p-4 font-medium">{user.pseudo}</td>
-                      <td className="p-4">{user.age}</td>
-                      <td className="p-4">{user.aiUsageFrequency}</td>
-                      <td className="p-4">
-                        {test1Percent !== null ? `${test1Percent} %` : "-"}
-                      </td>
-                      <td className="p-4">
-                        {test2Percent !== null ? `${test2Percent} %` : "-"}
-                      </td>
-                      <td className="p-4">
-                        {test2 ? test2.aiUsageCount ?? 0 : "-"}
-                      </td>
-                      <td className="p-4 font-semibold">
-                        {gap !== null ? (
-                          <span
-                            className={
-                              gap > 0 ? "text-green-600" : "text-red-600"
-                            }
-                          >
-                            {gap > 0 ? "+" : ""}
-                            {gap} %
-                          </span>
-                        ) : (
-                          "-"
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
+                {rows.map((row) => (
+                  <tr key={row.participant} className="hover:bg-slate-50">
+                    <td className="p-4 font-medium">{row.participant}</td>
+                    <td className="p-4">{row.test1} %</td>
+                    <td className="p-4">{row.test2} %</td>
+                    <td className="p-4 font-bold">
+                      <span
+                        className={
+                          row.gap > 0
+                            ? "text-green-600"
+                            : row.gap < 0
+                            ? "text-red-600"
+                            : "text-slate-600"
+                        }
+                      >
+                        {row.gap > 0 ? "+" : ""}
+                        {row.gap} %
+                      </span>
+                    </td>
+                    <td className="p-4">{row.aiUsage} / 10</td>
+                    <td className="p-4">{row.aiUsageFrequency}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         </div>
       </section>
     </main>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  color = "slate",
+}: {
+  label: string;
+  value: string;
+  color?: "slate" | "blue" | "green" | "red" | "purple";
+}) {
+  const colors = {
+    slate: "text-slate-900",
+    blue: "text-blue-600",
+    green: "text-green-600",
+    red: "text-red-600",
+    purple: "text-purple-600",
+  };
+
+  return (
+    <div className="rounded-3xl bg-white p-6 shadow-xl border border-slate-200">
+      <p className="text-sm text-slate-500">{label}</p>
+      <p className={`text-4xl font-extrabold mt-2 ${colors[color]}`}>
+        {value}
+      </p>
+    </div>
   );
 }
