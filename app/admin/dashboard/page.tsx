@@ -49,13 +49,11 @@ export default async function AdminDashboardPage() {
     const test2Percent =
       test2 && test2.total ? Math.round((test2.score / test2.total) * 100) : 0;
 
-    const gap = test2Percent - test1Percent;
-
     return {
       participant: user.pseudo,
       test1: test1Percent,
       test2: test2Percent,
-      gap,
+      gap: test2Percent - test1Percent,
       aiUsage: test2?.aiUsageCount ?? 0,
       aiUsageFrequency: user.aiUsageFrequency,
       hasBothTests: Boolean(test1 && test2),
@@ -64,10 +62,10 @@ export default async function AdminDashboardPage() {
 
   const completedRows = rows.filter((row) => row.hasBothTests);
 
-  const average = (values: number[]) => {
-    if (values.length === 0) return 0;
-    return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
-  };
+  const average = (values: number[]) =>
+    values.length === 0
+      ? 0
+      : Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
 
   const avgTest1 = average(completedRows.map((row) => row.test1));
   const avgTest2 = average(completedRows.map((row) => row.test2));
@@ -82,6 +80,11 @@ export default async function AdminDashboardPage() {
     completedRows.length === 0
       ? 0
       : Math.round((improvedCount / completedRows.length) * 100);
+
+  const completionRate =
+    users.length === 0
+      ? 0
+      : Math.round((completedRows.length / users.length) * 100);
 
   const comparisonData = [
     { name: "Test 1", score: avgTest1 },
@@ -110,12 +113,12 @@ export default async function AdminDashboardPage() {
             </p>
 
             <h1 className="text-4xl font-extrabold text-white mt-2">
-              Tableau de bord de l’étude IA
+              Impact de l’IA générative sur le raisonnement et l’autonomie cognitive
             </h1>
 
             <p className="text-slate-300 mt-3 max-w-3xl">
-              Analyse claire des performances entre le test sans IA et le test
-              avec assistance IA limitée.
+              Analyse des performances entre un test sans IA et un test avec
+              assistance IA limitée.
             </p>
           </div>
 
@@ -138,7 +141,7 @@ export default async function AdminDashboardPage() {
           </div>
         </header>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-6 gap-5 mb-8">
           <StatCard label="Participants" value={`${users.length}`} />
           <StatCard label="Moyenne Test 1" value={`${avgTest1} %`} color="blue" />
           <StatCard label="Moyenne Test 2" value={`${avgTest2} %`} color="green" />
@@ -148,6 +151,12 @@ export default async function AdminDashboardPage() {
             color={avgGap >= 0 ? "green" : "red"}
           />
           <StatCard label="Usage moyen IA" value={`${avgAiUsage} / 10`} color="purple" />
+          <StatCard
+            label="Taux de complétion"
+            value={`${completedRows.length} / ${users.length}`}
+            subValue={`${completionRate} %`}
+            color="blue"
+          />
         </div>
 
         <div className="rounded-3xl bg-white p-6 shadow-xl border border-slate-200 mb-8">
@@ -155,11 +164,33 @@ export default async function AdminDashboardPage() {
             Synthèse scientifique
           </h2>
 
-          <p className="text-slate-600 mt-3 leading-relaxed">
-            {completedRows.length === 0
-              ? "Aucune donnée complète n’est encore disponible."
-              : `${improvementRate}% des participants ont amélioré leur score avec l’assistance IA. Le gain moyen observé est de ${avgGap > 0 ? "+" : ""}${avgGap}%. Ces résultats permettent d’observer si l’IA agit comme un soutien au raisonnement ou si son usage reste variable selon les profils.`}
-          </p>
+          <div className="text-slate-600 mt-3 leading-relaxed space-y-3">
+            {completedRows.length === 0 ? (
+              <p>Aucune donnée complète n’est encore disponible.</p>
+            ) : (
+              <>
+                <p>
+                  {improvementRate}% des participants ont amélioré leur score avec
+                  l’assistance IA, avec un gain moyen de{" "}
+                  {avgGap > 0 ? "+" : ""}
+                  {avgGap}%.
+                </p>
+
+                <p>
+                  Cependant, la dispersion des résultats montre que l’effet de
+                  l’IA n’est pas homogène : certains participants progressent
+                  fortement tandis que d’autres régressent.
+                </p>
+
+                <p>
+                  Cela suggère que l’IA agit davantage comme un amplificateur de
+                  raisonnement que comme un outil universellement bénéfique,
+                  dépendant du niveau initial et de la manière dont elle est
+                  utilisée.
+                </p>
+              </>
+            )}
+          </div>
         </div>
 
         <AdminCharts
@@ -229,10 +260,12 @@ export default async function AdminDashboardPage() {
 function StatCard({
   label,
   value,
+  subValue,
   color = "slate",
 }: {
   label: string;
   value: string;
+  subValue?: string;
   color?: "slate" | "blue" | "green" | "red" | "purple";
 }) {
   const colors = {
@@ -246,9 +279,10 @@ function StatCard({
   return (
     <div className="rounded-3xl bg-white p-6 shadow-xl border border-slate-200">
       <p className="text-sm text-slate-500">{label}</p>
-      <p className={`text-4xl font-extrabold mt-2 ${colors[color]}`}>
+      <p className={`text-3xl font-extrabold mt-2 ${colors[color]}`}>
         {value}
       </p>
+      {subValue && <p className="text-sm text-slate-500 mt-1">{subValue}</p>}
     </div>
   );
 }

@@ -151,6 +151,11 @@ export default function AdminCharts({
             )}
           </ScatterChart>
         </ResponsiveContainer>
+        <p className="mt-4 rounded-2xl bg-slate-50 border border-slate-200 p-4 text-sm text-slate-600 leading-relaxed">
+          Une légère tendance négative peut être observée : un usage plus élevé de
+          l’IA ne garantit pas de meilleures performances, suggérant un possible
+          effet de dépendance ou de mauvaise utilisation.
+        </p>
       </ChartCard>
     </div>
   );
