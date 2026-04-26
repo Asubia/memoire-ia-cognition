@@ -40,7 +40,7 @@ export default function ConnexionPage() {
     if (data.user.role === "ADMIN") {
       router.push("/admin/dashboard");
     } else {
-      router.push("/tests");
+      router.push("/consignes");
     }
   }
 
