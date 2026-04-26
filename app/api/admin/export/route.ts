@@ -2,26 +2,24 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+type AnswerLike = {
+  timeSpent: number;
+};
+
 type TestSessionLike = {
-  id: number;
-  userId: number;
   testType: "TEST_1" | "TEST_2";
   score: number;
   total: number;
   aiUsageCount: number | null;
-  startedAt: Date;
-  completedAt: Date | null;
+  answers: AnswerLike[];
 };
 
 type UserWithSessions = {
-  id: number;
   pseudo: string;
   username: string;
-  passwordHash: string;
   age: number;
   educationLevel: string;
   aiUsageFrequency: string;
-  role: string;
   createdAt: Date;
   sessions: TestSessionLike[];
 };
@@ -29,6 +27,19 @@ type UserWithSessions = {
 function escapeCsv(value: unknown) {
   const text = String(value ?? "");
   return `"${text.replace(/"/g, '""')}"`;
+}
+
+function totalTime(session?: TestSessionLike) {
+  if (!session) return "";
+  return session.answers.reduce(
+    (sum, answer) => sum + (answer.timeSpent ?? 0),
+    0
+  );
+}
+
+function percent(session?: TestSessionLike) {
+  if (!session || !session.total) return "";
+  return Math.round((session.score / session.total) * 100);
 }
 
 export async function GET() {
@@ -41,24 +52,26 @@ export async function GET() {
 
   const users = (await prisma.user.findMany({
     where: { role: "PARTICIPANT" },
-    include: { sessions: true },
+    include: {
+      sessions: {
+        include: {
+          answers: {
+            select: {
+              timeSpent: true,
+            },
+          },
+        },
+      },
+    },
     orderBy: { createdAt: "desc" },
   })) as UserWithSessions[];
 
-  const rows = users.map((user: UserWithSessions) => {
-    const test1 = user.sessions.find(
-      (session: TestSessionLike) => session.testType === "TEST_1"
-    );
+  const rows = users.map((user) => {
+    const test1 = user.sessions.find((s) => s.testType === "TEST_1");
+    const test2 = user.sessions.find((s) => s.testType === "TEST_2");
 
-    const test2 = user.sessions.find(
-      (session: TestSessionLike) => session.testType === "TEST_2"
-    );
-
-    const test1Percent =
-      test1 && test1.total ? Math.round((test1.score / test1.total) * 100) : "";
-
-    const test2Percent =
-      test2 && test2.total ? Math.round((test2.score / test2.total) * 100) : "";
+    const test1Percent = percent(test1);
+    const test2Percent = percent(test2);
 
     const gap =
       typeof test1Percent === "number" && typeof test2Percent === "number"
@@ -71,8 +84,17 @@ export async function GET() {
       user.age,
       user.educationLevel,
       user.aiUsageFrequency,
+
+      test1?.score ?? "",
+      test1?.total ?? "",
       test1Percent,
+      totalTime(test1),
+
+      test2?.score ?? "",
+      test2?.total ?? "",
       test2Percent,
+      totalTime(test2),
+
       test2?.aiUsageCount ?? "",
       gap,
       user.createdAt.toISOString(),
@@ -85,10 +107,19 @@ export async function GET() {
     "age",
     "niveau_etude",
     "frequence_usage_ia",
+
+    "score_test_1",
+    "total_test_1",
     "score_test_1_pourcentage",
+    "temps_total_test_1_secondes",
+
+    "score_test_2",
+    "total_test_2",
     "score_test_2_pourcentage",
+    "temps_total_test_2_secondes",
+
     "nombre_aides_ia",
-    "ecart_test2_test1",
+    "ecart_test2_test1_pourcentage",
     "date_inscription",
   ];
 
